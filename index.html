@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // Theme before first paint: saved choice wins, otherwise daylight = street, night = race
+    (function () {
+      var saved = localStorage.getItem("tr-theme");
+      var hour = new Date().getHours();
+      document.documentElement.dataset.theme = saved || (hour >= 7 && hour < 19 ? "street" : "race");
+    })();
+  </script>
+  <title>Tejas Redkar — ML at Race Pace</title>
+  <meta name="description" content="Portfolio of Tejas Redkar — Python, machine learning and NLP engineer. Creator of PyMotoGP, StockGenius, Apex Telemetry and more." />
+  <meta property="og:title" content="Tejas Redkar — ML at Race Pace" />
+  <meta property="og:description" content="Machine learning · Motorsport data · Always building" />
+  <meta property="og:image" content="https://avatars.githubusercontent.com/u/86062873?v=4" />
+  <link rel="icon" href="https://avatars.githubusercontent.com/u/86062873?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
+</head>
+<body>
+
+  <!-- Garage shutter (theme transition) -->
+  <div class="shutter" id="shutter" aria-hidden="true">
+    <div class="shutter-face">
+      <span class="shutter-logo">TR<span>/21</span></span>
+      <span class="shutter-text" id="shutter-text">RACE MODE</span>
+    </div>
+    <div class="shutter-bar"></div>
+  </div>
+
+  <!-- Clean panel wipe (entering street mode) -->
+  <div class="panel-slide" id="panel-slide" aria-hidden="true">
+    <div class="panel-content">
+      <span class="panel-prompt">$ cd ~/street</span>
+      <span class="panel-title">Street mode.</span>
+    </div>
+  </div>
+
+  <!-- Racing-line scroll spine (race mode only) -->
+  <div class="race-spine" aria-hidden="true">
+    <div class="spine-rail"></div>
+    <div class="spine-progress"></div>
+    <div class="spine-car"></div>
+    <div class="spine-readout">000%</div>
+  </div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav-wrap">
+    <nav class="nav container">
+      <a href="#top" class="nav-logo">TR<span class="logo-num">/21</span></a>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects"><span class="race-only">Garage</span><span class="street-only">Work</span></a></li>
+        <li><a href="#skills"><span class="race-only">Toolkit</span><span class="street-only">Skills</span></a></li>
+        <li><a href="#experience"><span class="race-only">Race history</span><span class="street-only">Experience</span></a></li>
+        <li><a href="#contact" class="nav-cta"><span class="race-only">Pit wall</span><span class="street-only">Contact</span></a></li>
+        <li><button class="mode-toggle" id="mode-toggle" type="button" aria-live="polite">STREET MODE</button></li>
+      </ul>
+      <div class="mode-hint" id="mode-hint" aria-hidden="true">
+        <svg class="hint-arrow race-only" viewBox="0 0 44 46" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 44 V22 H34 V12" stroke-linejoin="miter" />
+          <path d="M27 16 L34 8 L41 16" />
+        </svg>
+        <svg class="hint-arrow street-only-block" viewBox="0 0 44 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 44 C8 26 18 22 33 12" />
+          <path d="M25 11 L35 10 L31 20" stroke-linejoin="round" />
+        </svg>
+        <span class="hint-text"><span class="race-only">TWO SIDES — SWAP HERE</span><span class="street-only">this site has two sides</span></span>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-vignette" aria-hidden="true"></div>
+      <span class="hero-ghost-num race-only" aria-hidden="true">21</span>
+
+      <!-- Street mode: terminal window -->
+      <div class="terminal-card street-only-block" aria-hidden="true">
+        <div class="term-bar"><span></span><span></span><span></span><p>tejas@portfolio — zsh</p></div>
+        <pre class="term-body">$ whoami
+ml engineer · always building
+
+$ python train.py --life
+epoch 26/∞   loss: 0.013 ↓
+val_curiosity: 0.998 ↑
+
+$ git log --oneline -3
+a3f21c9 ship StockGenius v2
+8d04e7b PyMotoGP: pace report
+51c990a apex-telemetry live
+
+$ <span class="cursor">█</span></pre>
+      </div>
+
+      <div class="hero-inner container">
+        <p class="hero-kicker reveal"><span class="dot"></span><span class="race-only">ON TRACK — ALWAYS BUILDING</span><span class="street-only">open to interesting problems</span></p>
+        <h1 class="hero-name reveal"><span class="race-only">TEJAS REDKAR</span><span class="street-only">Tejas Redkar</span></h1>
+        <h2 class="hero-headline reveal">
+          <span class="race-only">Machine learning,<br />driven at <span class="gradient-text">race&nbsp;pace.</span></span>
+          <span class="street-only">Building <span class="gradient-text">intelligent things</span>,<br />end to end.</span>
+        </h2>
+        <p class="hero-sub reveal race-only">
+          Python · ML · NLP engineer and motorsport data nerd. By day I stress-test
+          trade systems at <strong>BNP Paribas</strong>; the rest of the time I'm
+          shipping — an open-source MotoGP library, an AI stock platform, F1
+          telemetry tools. The garage light never goes off.
+        </p>
+        <p class="hero-sub street-only-block">
+          Python, machine learning and NLP engineer. I take models out of notebooks
+          and into production — data pipelines, APIs, full-stack apps. Currently
+          keeping trade systems honest at <strong>BNP Paribas</strong>, always
+          training something new on the side.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="#projects" class="btn btn-primary"><span class="race-only">Enter the garage</span><span class="street-only">See my work</span></a>
+          <a href="#contact" class="btn btn-ghost"><span class="race-only">Radio check</span><span class="street-only">Get in touch</span></a>
+        </div>
+        <div class="hero-socials reveal">
+          <a href="https://github.com/tejred213" target="_blank" rel="noopener" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/tejas-redkar21" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+          </a>
+          <a href="mailto:redkartejas213@gmail.com" aria-label="Email">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6L22 7"/></svg>
+          </a>
+          <a href="https://www.credly.com/users/tejas-redkar.21/badges" target="_blank" rel="noopener" aria-label="Credly badges">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-2 7 5.5-3 5.5 3-2-7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-sectors container reveal race-only">
+        <div class="sector s1"><span class="sector-label">S1</span><span class="sector-name">DATA</span></div>
+        <div class="sector s2"><span class="sector-label">S2</span><span class="sector-name">MODELS</span></div>
+        <div class="sector s3"><span class="sector-label">S3</span><span class="sector-name">SHIPPING</span></div>
+        <div class="scroll-hint">SCROLL ▾</div>
+      </div>
+
+      <div class="street-pipeline container" aria-hidden="true">
+        <span class="pl-step">data</span><span class="pl-arrow">→</span>
+        <span class="pl-step">models</span><span class="pl-arrow">→</span>
+        <span class="pl-step">production</span>
+        <span class="pl-note">scroll ↓</span>
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track race-only">
+        <span>PYTHON ✦ MACHINE LEARNING ✦ NLP ✦ MOTOGP DATA ✦ F1 TELEMETRY ✦ RAG PIPELINES ✦ FASTAPI ✦ REACT ✦ MLOPS ✦ ALWAYS SHIPPING ✦&nbsp;</span>
+        <span>PYTHON ✦ MACHINE LEARNING ✦ NLP ✦ MOTOGP DATA ✦ F1 TELEMETRY ✦ RAG PIPELINES ✦ FASTAPI ✦ REACT ✦ MLOPS ✦ ALWAYS SHIPPING ✦&nbsp;</span>
+      </div>
+      <div class="marquee-track street-only-flex">
+        <span>import torch ✦ pip install pymotogp ✦ git push origin main ✦ SELECT * FROM ideas ✦ docker compose up ✦ loss ↓ curiosity ↑ ✦ always learning ✦&nbsp;</span>
+        <span>import torch ✦ pip install pymotogp ✦ git push origin main ✦ SELECT * FROM ideas ✦ docker compose up ✦ loss ↓ curiosity ↑ ✦ always learning ✦&nbsp;</span>
+      </div>
+    </div>
+
+    <!-- ============ STATS ============ -->
+    <section class="stats container reveal">
+      <div class="stat">
+        <span class="stat-pos">P1</span>
+        <span class="stat-num" data-count="33">0</span>
+        <span class="stat-label">PUBLIC REPOS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-pos">P2</span>
+        <span class="stat-num">5<span class="star">★</span></span>
+        <span class="stat-label">HACKERRANK PYTHON</span>
+      </div>
+      <div class="stat">
+        <span class="stat-pos">P3</span>
+        <span class="stat-num" data-count="10" data-suffix="+">0</span>
+        <span class="stat-label">ML / DL PROJECTS</span>
+      </div>
+      <div class="stat">
+        <span class="stat-pos">P4</span>
+        <span class="stat-num" data-count="4">0</span>
+        <span class="stat-label">PROJECTS LIVE IN PROD</span>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="section container">
+      <p class="section-kicker reveal"><span class="race-only">SECTOR 01 // ABOUT</span><span class="street-only">~/about</span></p>
+      <h3 class="section-title reveal">
+        <span class="race-only">Math-first foundations.<br />Race-bred execution.</span>
+        <span class="street-only">Math-first foundations,<br />production instincts.</span>
+      </h3>
+      <div class="about-grid">
+        <div class="about-copy reveal">
+          <p>
+            With a strong base in mathematics and computer science, I work across the
+            full stack of data — analysis, predictive modelling, deep learning — and I
+            don't stop at the notebook. Models become APIs, APIs become products,
+            products go live.
+          </p>
+          <p class="race-only">
+            By day I run quality assurance on trade systems at BNP Paribas. After hours
+            the garage opens: an open-source MotoGP data library, an AI-powered NSE
+            stock platform, an F1 sector-analysis tool, a rental map for Pune. Different
+            machines, same engine.
+          </p>
+          <p class="street-only-block">
+            By day I run quality assurance on trade systems at BNP Paribas. Evenings are
+            for side projects: an open-source MotoGP data library, an AI-powered NSE
+            stock platform, an F1 sector-analysis tool, a rental map for Pune — models,
+            APIs and interfaces, built end to end.
+          </p>
+          <p class="punch race-only">
+            If it involves Python, a hard dataset and a clock to beat — I'm in.
+          </p>
+          <p class="punch street-only-block">
+            If it involves Python and a hard dataset — I'm in.
+          </p>
+        </div>
+        <div class="spec-sheet reveal">
+          <div class="spec-head">
+            <img src="https://avatars.githubusercontent.com/u/86062873?v=4" alt="Tejas Redkar" class="spec-avatar" />
+            <div>
+              <span class="spec-driver"><span class="race-only">DRIVER №21</span><span class="street-only">model card</span></span>
+              <span class="spec-name"><span class="race-only">TEJAS REDKAR</span><span class="street-only">tejas-redkar</span></span>
+              <span class="spec-team"><span class="race-only">TEAM: BNP PARIBAS · INDIA</span><span class="street-only">v2026.06 · india · status: training</span></span>
+            </div>
+          </div>
+          <dl class="spec-rows">
+            <div class="spec-row"><dt><span class="race-only">ENGINE</span><span class="street-only">core</span></dt><dd>Python · TensorFlow · PyTorch</dd></div>
+            <div class="spec-row"><dt><span class="race-only">CHASSIS</span><span class="street-only">serving</span></dt><dd>FastAPI · Flask · React</dd></div>
+            <div class="spec-row"><dt><span class="race-only">TELEMETRY</span><span class="street-only">data ops</span></dt><dd>pandas · MLflow · DVC</dd></div>
+            <div class="spec-row"><dt><span class="race-only">AERO</span><span class="street-only">infra</span></dt><dd>Docker · GitHub Actions · AWS</dd></div>
+            <div class="spec-row"><dt><span class="race-only">FUEL</span><span class="street-only">objective</span></dt><dd><span class="race-only">Coffee &amp; race weekends</span><span class="street-only">Keep shipping, keep learning</span></dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section id="projects" class="section container">
+      <p class="section-kicker reveal"><span class="race-only">SECTOR 02 // THE GARAGE</span><span class="street-only">~/work $ ls --shipped</span></p>
+      <h3 class="section-title reveal">
+        <span class="race-only">Machines I've built<span class="accent">_</span></span>
+        <span class="street-only">Selected work<span class="accent">.</span></span>
+      </h3>
+
+      <div class="projects-grid">
+        <!-- StockGenius -->
+        <article class="project-card featured reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">01</span>
+          <div class="project-top">
+            <span class="project-status live">● LIVE</span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/StockGenius" target="_blank" rel="noopener" aria-label="StockGenius on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+              <a href="https://stock-genius-in.vercel.app" target="_blank" rel="noopener" aria-label="StockGenius live demo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>
+            </div>
+          </div>
+          <h4>StockGenius</h4>
+          <p>AI-powered stock analysis platform for NSE markets. Real-time NIFTY50 tracking, ML-driven buy/sell signals, technical indicators, momentum screens, news sentiment and an options advisor.</p>
+          <ul class="project-tags">
+            <li>React 19</li><li>TypeScript</li><li>FastAPI</li><li>Python ML</li><li>Fly.io</li>
+          </ul>
+        </article>
+
+        <!-- PyMotoGP -->
+        <article class="project-card featured reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">02</span>
+          <div class="project-top">
+            <div class="status-group">
+              <span class="project-status live">● LIVE</span>
+              <span class="project-status wip">● ACTIVE DEV</span>
+            </div>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/PyMotoGP" target="_blank" rel="noopener" aria-label="PyMotoGP on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+              <a href="https://pypi.org/project/pymotogp/" target="_blank" rel="noopener" aria-label="PyMotoGP on PyPI"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></a>
+            </div>
+          </div>
+          <h4>PyMotoGP</h4>
+          <p>Open-source Python library for MotoGP data — inspired by FastF1. Session-centric access to qualifying, sprint and race data from the official PulseLive API and DORNA timing PDFs, with pandas DataFrames, plotting and gap analysis built in.</p>
+          <ul class="project-tags">
+            <li>Python</li><li>pandas</li><li>pdfplumber</li><li>matplotlib</li><li>CI / GitHub Actions</li>
+          </ul>
+        </article>
+
+        <!-- Apex Telemetry -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">03</span>
+          <div class="project-top">
+            <span class="project-status live">● LIVE</span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/Apex-Telemetry" target="_blank" rel="noopener" aria-label="Apex Telemetry on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+              <a href="https://apex-telemetry.fly.dev/" target="_blank" rel="noopener" aria-label="Apex Telemetry live site"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>
+            </div>
+          </div>
+          <h4>Apex Telemetry</h4>
+          <p>Sector-by-sector comparison of F1 qualifying laps. Pick a session and two drivers — get sector deltas, speed traps and an interactive track-dominance map rendered on canvas with official turn numbers.</p>
+          <ul class="project-tags">
+            <li>React</li><li>Flask</li><li>FastF1</li><li>Canvas</li>
+          </ul>
+        </article>
+
+        <!-- Pune Rent -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">04</span>
+          <div class="project-top">
+            <span class="project-status live">● LIVE</span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/Pune-Rent" target="_blank" rel="noopener" aria-label="Pune Rent on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+              <a href="https://www.punerent.in" target="_blank" rel="noopener" aria-label="Pune Rent live site"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>
+            </div>
+          </div>
+          <h4>Pune.Rent</h4>
+          <p>Full-stack real-estate mapping app for rental discovery in Pune. Interactive Leaflet map with marker clustering, area &amp; price filters, market stats, and a Flask + PostgreSQL backend with scheduled data refreshes.</p>
+          <ul class="project-tags">
+            <li>React</li><li>Leaflet</li><li>Flask</li><li>PostgreSQL</li>
+          </ul>
+        </article>
+
+        <!-- LipReader -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">05</span>
+          <div class="project-top">
+            <span class="project-status"></span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/LipReader" target="_blank" rel="noopener" aria-label="LipReader on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+            </div>
+          </div>
+          <h4>LipReader</h4>
+          <p>Deep-learning lip reading inspired by the LipNet paper. A CNN + RNN architecture with CTC loss reads mouth movements from video frames and predicts the spoken sentence.</p>
+          <ul class="project-tags">
+            <li>TensorFlow</li><li>OpenCV</li><li>CTC</li><li>Seq2Seq</li>
+          </ul>
+        </article>
+
+        <!-- Chest Cancer -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">06</span>
+          <div class="project-top">
+            <span class="project-status"></span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/Chest-Cancer-Prediction-using-ML-Flow-DVC" target="_blank" rel="noopener" aria-label="Chest Cancer Prediction on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+            </div>
+          </div>
+          <h4>Chest Cancer Classification</h4>
+          <p>End-to-end medical imaging pipeline: CNN classification of chest CT scans with MLflow experiment tracking, DVC data versioning and a Dockerized Flask app ready for deployment.</p>
+          <ul class="project-tags">
+            <li>CNN</li><li>MLflow</li><li>DVC</li><li>Docker</li><li>Flask</li>
+          </ul>
+        </article>
+
+        <!-- Football Analysis -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">07</span>
+          <div class="project-top">
+            <span class="project-status"></span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/Football-Analysis" target="_blank" rel="noopener" aria-label="Football Analysis on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+            </div>
+          </div>
+          <h4>Football Analysis</h4>
+          <p>Computer-vision match analysis: YOLOv5 detection and tracking of players, referees and the ball; KMeans shirt-colour team assignment; optical flow for camera motion; perspective transform to measure real speed and distance.</p>
+          <ul class="project-tags">
+            <li>YOLOv5</li><li>OpenCV</li><li>KMeans</li><li>Ultralytics</li>
+          </ul>
+        </article>
+
+        <!-- Doc chat -->
+        <article class="project-card reveal" data-tilt>
+          <span class="card-num" aria-hidden="true">08</span>
+          <div class="project-top">
+            <span class="project-status"></span>
+            <div class="project-links">
+              <a href="https://github.com/tejred213/Doc_chat" target="_blank" rel="noopener" aria-label="Doc chat on GitHub"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.78 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.14c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+            </div>
+          </div>
+          <h4>CDoc — Chat with Documents</h4>
+          <p>RAG application for conversing with your documents fully offline — local LLMs served by Ollama, embeddings in ChromaDB, retrieval orchestrated with LangChain, and a Streamlit front end.</p>
+          <ul class="project-tags">
+            <li>LangChain</li><li>Ollama</li><li>ChromaDB</li><li>RAG</li><li>Streamlit</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="more-projects reveal">
+        <p class="race-only">Also in the garage: music-genre classification, Twitter sentiment analysis, a movie recommender, an SMS spam classifier, a Netflix clone and more.</p>
+        <p class="street-only-block">Also on GitHub: music-genre classification, Twitter sentiment analysis, a movie recommender, an SMS spam classifier, a Netflix clone and more.</p>
+        <a href="https://github.com/tejred213?tab=repositories" target="_blank" rel="noopener" class="btn btn-ghost">All 33 repositories →</a>
+      </div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section id="skills" class="section container">
+      <p class="section-kicker reveal"><span class="race-only">SECTOR 03 // THE TOOLKIT</span><span class="street-only">~/skills $ cat stack.yaml</span></p>
+      <h3 class="section-title reveal">
+        <span class="race-only">Pit-box inventory<span class="accent">_</span></span>
+        <span class="street-only">Tools I think in<span class="accent">.</span></span>
+      </h3>
+      <div class="skills-grid">
+        <div class="skill-group reveal">
+          <h5>Languages</h5>
+          <ul class="chips">
+            <li>Python</li><li>SQL</li><li>JavaScript / TypeScript</li><li>C / C++</li><li>R</li>
+          </ul>
+        </div>
+        <div class="skill-group reveal">
+          <h5>ML &amp; Deep Learning</h5>
+          <ul class="chips">
+            <li>TensorFlow</li><li>PyTorch</li><li>Keras</li><li>scikit-learn</li><li>OpenCV</li><li>YOLO</li><li>NLP</li>
+          </ul>
+        </div>
+        <div class="skill-group reveal">
+          <h5>Data &amp; Analytics</h5>
+          <ul class="chips">
+            <li>pandas</li><li>NumPy</li><li>SciPy</li><li>Matplotlib</li><li>Plotly</li><li>Tableau</li><li>Power BI</li>
+          </ul>
+        </div>
+        <div class="skill-group reveal">
+          <h5>LLMs &amp; GenAI</h5>
+          <ul class="chips">
+            <li>LangChain</li><li>Ollama</li><li>ChromaDB</li><li>RAG pipelines</li>
+          </ul>
+        </div>
+        <div class="skill-group reveal">
+          <h5>Web &amp; APIs</h5>
+          <ul class="chips">
+            <li>FastAPI</li><li>Flask</li><li>React</li><li>Streamlit</li><li>Vite</li>
+          </ul>
+        </div>
+        <div class="skill-group reveal">
+          <h5>MLOps &amp; Cloud</h5>
+          <ul class="chips">
+            <li>Docker</li><li>MLflow</li><li>DVC</li><li>GitHub Actions</li><li>AWS</li><li>GCP</li><li>SageMaker</li><li>PostgreSQL</li><li>MongoDB</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section id="experience" class="section container">
+      <p class="section-kicker reveal"><span class="race-only">SECTOR 04 // RACE HISTORY</span><span class="street-only">~/experience $ git log</span></p>
+      <h3 class="section-title reveal">
+        <span class="race-only">Where I've raced<span class="accent">_</span></span>
+        <span class="street-only">Experience<span class="accent">.</span></span>
+      </h3>
+      <ol class="timeline">
+        <li class="timeline-item reveal">
+          <div class="timeline-marker current"></div>
+          <div class="timeline-body">
+            <span class="timeline-period"><span class="race-only">CURRENT STINT</span><span class="street-only">present</span></span>
+            <h4>Graduate Analyst · BNP Paribas</h4>
+            <p>Quality assurance for trade and banking systems at one of Europe's largest banks — test design, automation and analysis in a regulated, high-stakes environment.</p>
+          </div>
+        </li>
+        <li class="timeline-item reveal">
+          <div class="timeline-marker"></div>
+          <div class="timeline-body">
+            <span class="timeline-period"><span class="race-only">EARLIER</span><span class="street-only">previously</span></span>
+            <h4>Trade Testing Intern · BNP Paribas</h4>
+            <p>Gained exposure to QA processes within the banking sector, working on trade-flow testing before converting to a full-time role.</p>
+          </div>
+        </li>
+        <li class="timeline-item reveal">
+          <div class="timeline-marker"></div>
+          <div class="timeline-body">
+            <span class="timeline-period"><span class="race-only">EARLIER</span><span class="street-only">previously</span></span>
+            <h4>Project Engineer &amp; Intern · CDAC Pune</h4>
+            <p>Contributed to software engineering projects at the Centre for Development of Advanced Computing, India's premier R&amp;D organisation.</p>
+          </div>
+        </li>
+        <li class="timeline-item reveal">
+          <div class="timeline-marker"></div>
+          <div class="timeline-body">
+            <span class="timeline-period"><span class="race-only">EARLIER</span><span class="street-only">previously</span></span>
+            <h4>Data Scientist · DevTown</h4>
+            <p>Applied data analysis and machine-learning techniques to real-world datasets, building and evaluating predictive models.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact" class="section container">
+      <div class="contact-card reveal">
+        <div class="checker-strip race-only" aria-hidden="true"></div>
+        <p class="section-kicker"><span class="race-only">SECTOR 05 // PIT WALL</span><span class="street-only">~/contact $ ping tejas</span></p>
+        <h3 class="section-title">
+          <span class="race-only">Box, box. Let's talk<span class="accent">_</span></span>
+          <span class="street-only">Let's build something<span class="accent">.</span></span>
+        </h3>
+        <p class="contact-sub race-only">
+          A data problem, an ML idea, or just arguing about race strategy —
+          radio's always open.
+        </p>
+        <p class="contact-sub street-only-block">
+          A data problem, an ML idea, or a team that ships —
+          my inbox is open.
+        </p>
+        <div class="contact-actions">
+          <a class="btn btn-primary" href="mailto:redkartejas213@gmail.com">redkartejas213@gmail.com</a>
+          <a class="btn btn-ghost" href="https://www.linkedin.com/in/tejas-redkar21" target="_blank" rel="noopener">LinkedIn</a>
+          <a class="btn btn-ghost" href="https://github.com/tejred213" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> <span class="race-only">TEJAS REDKAR — №21 · BUILT FROM SCRATCH, NO TEMPLATE.</span><span class="street-only">Tejas Redkar — handcrafted, no template.</span></p>
+      <a href="#top" class="back-top"><span class="race-only">BACK TO GRID ↑</span><span class="street-only">back to top ↑</span></a>
+    </div>
+  </footer>
+
+  <script src="js/main.js?v=3"></script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="js/scene.js?v=3"></script>
+</body>
+</html>
