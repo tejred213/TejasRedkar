@@ -29,7 +29,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); overflow-x: hidden; }
 
 body {
   background: var(--bg);
@@ -764,16 +764,10 @@ main { position: relative; z-index: 1; }
   .hero-ghost-num { font-size: 18rem; opacity: 0.7; }
 }
 
-@media (max-width: 640px) {
-  .section { padding-top: 80px; }
-  .skills-grid { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .contact-card { padding: 56px 24px; }
-  .hero-sectors { gap: 16px; flex-wrap: wrap; }
-  .scroll-hint { display: none; }
-  .hero-ghost-num { display: none; }
-  .nav-links .mode-toggle { width: 100%; text-align: left; padding: 13px 16px; font-size: 0.85rem; }
-
+/* ---- Collapsed nav: hamburger + slide-down menu (tablet & phone) ----
+   Kicks in early enough that the wider race-mode labels never crowd
+   or wrap in the horizontal bar. */
+@media (max-width: 900px) {
   .nav-toggle {
     display: flex;
     flex-direction: column;
@@ -799,16 +793,54 @@ main { position: relative; z-index: 1; }
     inset: var(--nav-h) 0 auto 0;
     flex-direction: column;
     align-items: stretch;
-    background: rgba(10, 10, 11, 0.97);
-    backdrop-filter: blur(16px);
+    /* solid + theme-aware so the light street palette stays readable and
+       the page never bleeds through the panel */
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
-    padding: 18px 24px 26px;
+    box-shadow: 0 26px 44px rgba(0, 0, 0, 0.32);
+    padding: 14px 20px 22px;
     gap: 4px;
+    /* never taller than the screen — scrolls on short / landscape phones */
+    max-height: calc(100vh - var(--nav-h));
+    max-height: calc(100dvh - var(--nav-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     transform: translateY(-130%);
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .nav-links.open { transform: translateY(0); }
   .nav-links a { display: block; padding: 13px 16px; font-size: 1rem; }
+  .nav-links .mode-toggle { width: 100%; text-align: left; padding: 13px 16px; font-size: 0.85rem; }
+
+  /* the pointing hint targets the desktop toggle — hide it once collapsed */
+  .mode-hint { display: none; }
+}
+
+@media (max-width: 640px) {
+  .section { padding-top: 80px; }
+  .skills-grid { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .contact-card { padding: 56px 24px; }
+  .hero-sectors { gap: 16px; flex-wrap: wrap; }
+  .scroll-hint { display: none; }
+  .hero-ghost-num { display: none; }
+
+  /* street pipeline: let it wrap so the "scroll" cue is never cropped */
+  .street-pipeline { flex-wrap: wrap; row-gap: 12px; }
+}
+
+/* ---- Small phones: reclaim edge space, stop the spec photo squeezing text ---- */
+@media (max-width: 480px) {
+  .spec-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+}
+
+@media (max-width: 400px) {
+  .container { padding-left: 18px; padding-right: 18px; }
+  .section { padding-left: 18px; padding-right: 18px; }
+  .contact-card { padding: 46px 18px; }
+  .hero-name { letter-spacing: 4px; }
+  .stats { gap: 10px; }
+  .btn { padding: 13px 22px; }
 }
 
 /* ============================================================
@@ -1309,4 +1341,3 @@ html[data-theme="street"] .hint-text {
 }
 
 @media (prefers-reduced-motion: reduce) { .mode-hint { animation: none; } }
-@media (max-width: 640px) { .mode-hint { display: none; } }

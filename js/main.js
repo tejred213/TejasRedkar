@@ -8,20 +8,42 @@ window.addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
 // ===== Mobile menu =====
+const navWrapEl = document.querySelector(".nav-wrap");
 const toggle = document.querySelector(".nav-toggle");
 const links = document.querySelector(".nav-links");
-toggle.addEventListener("click", () => {
-  const open = links.classList.toggle("open");
+const NAV_BREAKPOINT = 900; // keep in sync with the collapsed-nav media query
+
+const setMenu = (open) => {
+  links.classList.toggle("open", open);
   toggle.classList.toggle("open", open);
   toggle.setAttribute("aria-expanded", open);
-});
-links.querySelectorAll("a").forEach((a) =>
-  a.addEventListener("click", () => {
-    links.classList.remove("open");
-    toggle.classList.remove("open");
-    toggle.setAttribute("aria-expanded", "false");
-  })
+};
+const closeMenu = () => setMenu(false);
+
+toggle.addEventListener("click", () => setMenu(!links.classList.contains("open")));
+
+// close when a link or the mode toggle is tapped
+links.querySelectorAll("a, button").forEach((el) =>
+  el.addEventListener("click", closeMenu)
 );
+
+// close on Escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && links.classList.contains("open")) {
+    closeMenu();
+    toggle.focus();
+  }
+});
+
+// close when tapping outside the header
+document.addEventListener("click", (e) => {
+  if (links.classList.contains("open") && !navWrapEl.contains(e.target)) closeMenu();
+});
+
+// reset the menu if the viewport grows back to the desktop nav
+window.addEventListener("resize", () => {
+  if (window.innerWidth > NAV_BREAKPOINT) closeMenu();
+});
 
 // ===== Scroll reveal =====
 const revealObserver = new IntersectionObserver(
