@@ -1,0 +1,79 @@
+name: Sync projects
+
+# Adds a card for every GitHub repo tagged `portfolio` that the site doesn't
+# show yet, refreshes the public-repo count, and opens a PR for review.
+# Vercel builds a preview for the PR; merging it deploys to production.
+# Also runnable on demand from the Actions tab.
+on:
+  schedule:
+    - cron: "30 2 * * *" # daily, 08:00 IST
+  workflow_dispatch:
+
+concurrency: sync-projects
+
+env:
+  BRANCH: auto/sync-projects
+
+jobs:
+  # One sync PR at a time: never overwrite a PR that's waiting for review
+  # (or that you've already edited).
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      pending: ${{ steps.pr.outputs.number }}
+    steps:
+      - id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          if [ -n "$number" ]; then
+            echo "Sync PR #$number is still open, so this run was skipped. Merge or close it first." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  sync:
+    needs: check
+    if: needs.check.outputs.pending == ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: scripts/package-lock.json
+
+      - run: npm ci --prefix scripts
+
+      - name: Sync projects from GitHub
+        id: sync
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SYNC_SUMMARY: ${{ runner.temp }}/summary.md
+        run: node scripts/sync-projects.mjs
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_SUMMARY: ${{ runner.temp }}/summary.md
+          TITLE: ${{ steps.sync.outputs.title }}
+        run: |
+          if git diff --quiet; then
+            echo "Portfolio is up to date." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          cat "$SYNC_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git commit -am "$TITLE"
+          git push --force origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file "$SYNC_SUMMARY"

@@ -1,0 +1,13 @@
+{
+  "name": "portfolio-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Maintenance scripts for the portfolio (not part of the deployed site).",
+  "scripts": {
+    "sync": "node sync-projects.mjs",
+    "sync:dry": "node sync-projects.mjs --dry-run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.136.0"
+  }
+}
