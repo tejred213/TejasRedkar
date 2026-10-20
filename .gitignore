@@ -7,3 +7,6 @@
 
 # Logs
 *.log
+
+# Script dependencies
+node_modules/
