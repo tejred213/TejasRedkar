@@ -1,0 +1,85 @@
+<!doctype html>
+<!--
+  Source for assets/og-card.jpg — the 1200×630 link-preview image (LinkedIn,
+  WhatsApp, Slack, X). To regenerate: serve the repo root locally, open this
+  page at a 1200×630 viewport, screenshot it and save as assets/og-card.jpg.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OG card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500&display=block" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: #0a0a0b; }
+  body { position: relative; font-family: "Inter", sans-serif; color: #f2f1ed; }
+
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 30%, transparent 85%);
+  }
+  .glow { position: absolute; width: 760px; height: 760px; left: -220px; top: -260px;
+    background: radial-gradient(circle, rgba(225,6,0,0.16), transparent 62%); }
+  .ghost { position: absolute; right: 250px; bottom: -70px; font-family: "Chakra Petch"; font-weight: 700;
+    font-size: 420px; line-height: 1; color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,0.05); }
+  svg.line { position: absolute; inset: 0; }
+
+  .content { position: absolute; left: 72px; top: 64px; right: 420px; }
+  .logo { font-family: "Chakra Petch"; font-weight: 700; font-size: 34px; letter-spacing: 1px; }
+  .logo b { color: #e10600; }
+  .kicker { margin-top: 70px; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 19px;
+    letter-spacing: 5px; color: #a8a7a0; }
+  h1 { margin-top: 18px; font-family: "Chakra Petch"; font-weight: 700; font-size: 68px;
+    line-height: 1.02; text-transform: uppercase; letter-spacing: 0.5px; }
+  h1 em { font-style: normal; background: linear-gradient(100deg, #e10600 0%, #ff5400 55%, #ffb000 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tags { position: absolute; left: 72px; bottom: 74px; display: flex; gap: 12px; }
+  .tags span { font-family: "IBM Plex Mono"; font-weight: 500; font-size: 17px; color: #ffb000;
+    background: rgba(255,176,0,0.08); border: 1px solid rgba(255,176,0,0.32); padding: 8px 16px; }
+
+  .driver { position: absolute; right: 72px; top: 104px; width: 300px; }
+  .photo { width: 300px; height: 300px; object-fit: cover; display: block;
+    clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px);
+    border-top: 4px solid #e10600; filter: saturate(0.95); }
+  .plate { margin-top: 18px; font-family: "IBM Plex Mono"; font-weight: 600; font-size: 16px;
+    letter-spacing: 3px; color: #ff2a1f; }
+  .name { margin-top: 6px; font-family: "Chakra Petch"; font-weight: 700; font-size: 30px; letter-spacing: 1px; }
+  .team { margin-top: 4px; font-family: "IBM Plex Mono"; font-size: 14px; letter-spacing: 2px; color: #6e6d67; }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid"></div>
+  <div class="ghost">21</div>
+  <svg class="line" viewBox="0 0 1200 630" aria-hidden="true">
+    <defs>
+      <linearGradient id="g" x1="0" x2="1">
+        <stop offset="0" stop-color="#e10600" /><stop offset="0.55" stop-color="#ff5400" /><stop offset="1" stop-color="#ffb000" />
+      </linearGradient>
+      <filter id="blur"><feGaussianBlur stdDeviation="7" /></filter>
+    </defs>
+    <path d="M -20 612 C 180 572, 300 640, 470 612 S 760 566, 880 598 S 1080 636, 1220 596" fill="none" stroke="url(#g)" stroke-width="12" opacity="0.35" filter="url(#blur)" />
+    <path d="M -20 612 C 180 572, 300 640, 470 612 S 760 566, 880 598 S 1080 636, 1220 596" fill="none" stroke="url(#g)" stroke-width="3.5" />
+  </svg>
+
+  <div class="content">
+    <div class="logo">TR<b>/21</b></div>
+    <p class="kicker">TEJAS REDKAR · ML ENGINEER</p>
+    <h1>Machine learning,<br />driven at<br /><em>race pace.</em></h1>
+  </div>
+  <div class="tags"><span>StockGenius</span><span>PyMotoGP</span><span>Apex Telemetry</span><span>LipReader</span></div>
+
+  <div class="driver">
+    <img class="photo" src="../assets/tejas.jpg" alt="" />
+    <p class="plate">DRIVER №21</p>
+    <p class="name">TEJAS REDKAR</p>
+    <p class="team">PYTHON · ML · MOTORSPORT</p>
+  </div>
+</body>
+</html>

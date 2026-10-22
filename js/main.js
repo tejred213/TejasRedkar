@@ -131,6 +131,21 @@ if (!reduceMotion && !coarsePointer) {
   });
 }
 
+// ===== Project clips: loop only while on screen (poster only for reduced motion) =====
+const clips = document.querySelectorAll("video[data-autoplay]");
+if (clips.length && !reduceMotion) {
+  const clipObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (isIntersecting) target.play().catch(() => {});
+        else target.pause();
+      });
+    },
+    { threshold: 0.35 }
+  );
+  clips.forEach((clip) => clipObserver.observe(clip));
+}
+
 // ===== Theme: street/race with garage-shutter transition =====
 const rootEl = document.documentElement;
 const modeToggle = document.getElementById("mode-toggle");
