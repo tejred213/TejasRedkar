@@ -47,47 +47,68 @@ grid.material.transparent = true;
 grid.material.opacity = 0.55;
 world.add(grid);
 
-// ---------- Racing circuit ----------
-const trackPoints = [
-  [-10, 0.2, -4], [-4, 0.4, -5.2], [2, 0.55, -5.5], [7, 0.45, -4.7], [10.6, 0.25, -2.4],
-  [10, 0.7, 0.6], [7.4, 1.0, 2.0], [8.4, 0.8, 4.1], [5.8, 0.5, 5.5],
-  [2, 0.7, 4.2], [-1.6, 1.1, 5.3], [-5, 0.9, 4.4], [-7.6, 0.6, 5.1], [-10.6, 0.35, 3], [-11.2, 0.25, -0.6],
-].map((p) => new THREE.Vector3(...p));
+// ---------- Racing circuit: a real track map ----------
+// The circuit comes from data/last-race.json (the last or next MotoGP venue,
+// refreshed daily with PyMotoGP), falling back to Sepang, then to a sketch.
+// Outlines are normalised to [-1, 1] with north = +y, start/finish first,
+// in racing direction. Everything below lives in a unit-sized track group
+// that layout() scales and places on screen.
+const LEGACY_SKETCH = [[-0.91, 0.36], [-0.36, 0.47], [0.18, 0.5], [0.64, 0.43], [0.96, 0.22], [0.91, -0.05], [0.67, -0.18],
+  [0.76, -0.37], [0.53, -0.5], [0.18, -0.38], [-0.15, -0.48], [-0.45, -0.4], [-0.69, -0.46], [-0.96, -0.27], [-1, 0.05]];
 
-const curve = new THREE.CatmullRomCurve3(trackPoints, true, "catmullrom", 0.6);
+const withTimeout = (promise, ms) => Promise.race([promise, new Promise((r) => setTimeout(() => r(null), ms))]);
+let outline = (await withTimeout(window.lastRace ?? Promise.resolve(null), 2500))?.track?.points;
+if (!outline) {
+  outline = await withTimeout(
+    fetch("data/circuits.json").then((r) => r.json()).then((d) => d.circuits.sepang.points).catch(() => null), 2500);
+}
+outline ??= LEGACY_SKETCH;
 
-// Core racing line
-const lineGeo = new THREE.TubeGeometry(curve, 360, 0.05, 6, true);
-const lineMat = new THREE.MeshBasicMaterial({ color: COLORS.red });
-world.add(new THREE.Mesh(lineGeo, lineMat));
+const track = new THREE.Group();
+world.add(track);
+
+const curve = new THREE.CatmullRomCurve3(outline.map(([x, y]) => new THREE.Vector3(x, 0, -y)), true, "centripetal");
+
+// Racing line coloured by sector (S1 red, S2 amber, S3 green — same as the strip below)
+const SECTOR_COLORS = [COLORS.red, COLORS.amber, 0x00d26a];
+const lineMats = [];
+SECTOR_COLORS.forEach((color, s) => {
+  const pts = [];
+  for (let i = 0; i <= 120; i++) pts.push(curve.getPointAt(Math.min((s + i / 120) / 3, 1)));
+  const sectorCurve = new THREE.CatmullRomCurve3(pts);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, fog: false });
+  lineMats.push(mat);
+  track.add(new THREE.Mesh(new THREE.TubeGeometry(sectorCurve, 160, 0.011, 6, false), mat));
+});
 
 // Soft glow sheath around the line (additive, faint)
-const glowGeo = new THREE.TubeGeometry(curve, 240, 0.2, 6, true);
 const glowMat = new THREE.MeshBasicMaterial({
   color: COLORS.red,
+  fog: false,
   transparent: true,
   opacity: 0.12,
   blending: THREE.AdditiveBlending,
   depthWrite: false,
 });
-world.add(new THREE.Mesh(glowGeo, glowMat));
+track.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 320, 0.04, 6, true), glowMat));
 
-// Start/finish gate: two thin posts at t=0
+// Start/finish gate: two thin posts across the track at t=0
 const gatePos = curve.getPointAt(0);
-const gateMat = new THREE.MeshBasicMaterial({ color: COLORS.white, transparent: true, opacity: 0.5 });
-for (const side of [-0.45, 0.45]) {
-  const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.1, 0.05), gateMat);
-  post.position.set(gatePos.x + side, gatePos.y + 0.55, gatePos.z);
-  world.add(post);
+const across = new THREE.Vector3().crossVectors(curve.getTangentAt(0), new THREE.Vector3(0, 1, 0)).normalize();
+const gateMat = new THREE.MeshBasicMaterial({ color: COLORS.white, transparent: true, opacity: 0.6 });
+for (const side of [-0.07, 0.07]) {
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.16, 0.008), gateMat);
+  post.position.copy(gatePos).addScaledVector(across, side).setY(0.08);
+  track.add(post);
 }
 
 // ---------- The car (a bright light tracing the lap) ----------
 const car = new THREE.Mesh(
-  new THREE.SphereGeometry(0.14, 12, 12),
+  new THREE.SphereGeometry(0.026, 12, 12),
   new THREE.MeshBasicMaterial({ color: 0xffffff })
 );
 const carGlow = new THREE.Mesh(
-  new THREE.SphereGeometry(0.42, 12, 12),
+  new THREE.SphereGeometry(0.055, 12, 12),
   new THREE.MeshBasicMaterial({
     color: COLORS.amber,
     transparent: true,
@@ -96,7 +117,7 @@ const carGlow = new THREE.Mesh(
     depthWrite: false,
   })
 );
-world.add(car, carGlow);
+track.add(car, carGlow);
 
 // Precompute a curvature profile so the car brakes for corners
 const CURV_SAMPLES = 720;
@@ -128,14 +149,14 @@ const trailGeo = new THREE.BufferGeometry();
 trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
 trailGeo.setAttribute("color", new THREE.BufferAttribute(trailColors, 3));
 const trailMat = new THREE.PointsMaterial({
-  size: 0.16,
+  size: 0.12,
   vertexColors: true,
   transparent: true,
   blending: THREE.AdditiveBlending,
   depthWrite: false,
   sizeAttenuation: true,
 });
-world.add(new THREE.Points(trailGeo, trailMat));
+track.add(new THREE.Points(trailGeo, trailMat));
 const trailHistory = [];
 const amberColor = new THREE.Color(COLORS.amber);
 
@@ -210,19 +231,116 @@ window.addEventListener("pointermove", (e) => {
   pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
 }, { passive: true });
 
+// ---------- Layout: where the track map sits on screen ----------
+// Wide screens: the free space right of the hero text (above the race board),
+// measured from the DOM. Narrow screens: low and dimmed behind the content.
+// The map is fitted with real projections from the resting camera.
+const BASE_CAM = new THREE.Vector3(0, 5.6, 15);
+const raycaster = new THREE.Raycaster();
+// The map is anchored on an upright plane through the origin (constant distance,
+// clear of the fog) and tilted so it always reads at about the same angle.
+const trackPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const MAP_VIEW_ANGLE = 1.1; // radians between the line of sight and the map plane
+const xs = outline.map((p) => p[0]);
+const ys = outline.map((p) => p[1]);
+const corners = [];
+for (const x of [Math.min(...xs), Math.max(...xs)]) {
+  for (const y of [Math.min(...ys), Math.max(...ys)]) corners.push(new THREE.Vector3(x, 0, -y));
+}
+
+function layout() {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (!w || !h) return;
+  const hero = canvas.parentElement.getBoundingClientRect();
+  const rects = (sel) => [...document.querySelectorAll(sel)].flatMap((n) => [...n.getClientRects()]).filter((r) => r.width);
+  const textRight = Math.max(0, ...rects(".hero-kicker, .hero-headline .race-only, .hero-sub.race-only").map((r) => r.right - hero.left));
+  const board = document.getElementById("race-board");
+  const boardShown = board && !board.hidden && board.offsetWidth > 0;
+  const boardFloats = boardShown && getComputedStyle(board).position === "absolute";
+  const boardBox = boardShown ? board.getBoundingClientRect() : null;
+  const sectors = document.querySelector(".hero-sectors")?.getBoundingClientRect();
+  const navH = document.querySelector(".nav-wrap")?.offsetHeight || 72;
+  const hint = document.getElementById("mode-hint");
+  const hintBottom = hint?.isConnected && hint.offsetWidth ? hint.getBoundingClientRect().bottom - hero.top : 0;
+  const fits = (b) => b.right - b.left >= 220 && b.bottom - b.top >= 160;
+
+  // 1) right of the hero text, above a floating board
+  let box = {
+    left: textRight + 40,
+    right: w - Math.max(32, (w - 1160) / 4),
+    top: Math.max(navH + 28, hintBottom + 16),
+    bottom: (boardFloats ? boardBox.top : sectors ? sectors.top : hero.bottom) - hero.top - 28,
+  };
+  // 2) beside the board once it has joined the flow (tablets)
+  if (!(camera.aspect >= 1.15 && fits(box)) && boardShown && !boardFloats) {
+    box = { left: boardBox.right - hero.left + 32, right: w - 32, top: boardBox.top - hero.top, bottom: boardBox.bottom - hero.top };
+  }
+  // 3) no room (phones): main.js's flat mini map in the board takes over
+  const placed = fits(box);
+  track.visible = placed;
+  canvas.parentElement.classList.toggle("map-3d", placed);
+  if (!placed) return;
+
+  const resting = camera.position.clone();
+  camera.position.copy(BASE_CAM);
+  camera.lookAt(0, 1.2, 0);
+  camera.updateMatrixWorld();
+  const toNdc = (px, py) => new THREE.Vector2((px / w) * 2 - 1, 1 - (py / h) * 2);
+  const projected = () => {
+    track.updateMatrixWorld(true);
+    const p = corners.map((c) => c.clone().applyMatrix4(track.matrixWorld).project(camera));
+    const px = p.map((v) => ((v.x + 1) / 2) * w);
+    const py = p.map((v) => ((1 - v.y) / 2) * h);
+    return { w: Math.max(...px) - Math.min(...px), h: Math.max(...py) - Math.min(...py),
+      cx: (Math.max(...px) + Math.min(...px)) / 2, cy: (Math.max(...py) + Math.min(...py)) / 2 };
+  };
+  const target = { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 };
+  const hitAt = (px, py) => {
+    raycaster.setFromCamera(toNdc(px, py), camera);
+    return raycaster.ray.intersectPlane(trackPlane, new THREE.Vector3());
+  };
+  const start = hitAt(target.x, target.y);
+  if (start) {
+    track.position.copy(start);
+    track.rotation.x = Math.max(0, MAP_VIEW_ANGLE - Math.atan2(BASE_CAM.y - start.y, BASE_CAM.z - start.z));
+    track.scale.setScalar(1);
+    for (let pass = 0; pass < 3; pass++) {
+      const size = projected();
+      track.scale.multiplyScalar(Math.min((box.right - box.left) / size.w, (box.bottom - box.top) / size.h));
+      // re-centre: the tilted map's far half is foreshortened, so its middle drifts
+      const after = projected();
+      const from = hitAt(after.cx, after.cy);
+      const to = hitAt(target.x, target.y);
+      if (from && to) track.position.add(to.sub(from));
+    }
+  }
+  camera.position.copy(resting);
+  camera.lookAt(0, 1.2, 0);
+}
+document.addEventListener("tr-hero-layout", layout);
+
 // ---------- Sizing ----------
 function resize() {
   const { clientWidth: w, clientHeight: h } = canvas.parentElement;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  layout();
 }
 resize();
 window.addEventListener("resize", resize);
 
 // ---------- Animation loop ----------
 let lapT = 0;
+let lap = 1;
 let running = true;
+
+// Sector strip + lap counter in the hero follow the car
+const sectorEls = [...document.querySelectorAll("[data-sector]")];
+const lapEl = document.querySelector('[data-rb="lap"]');
+const miniCar = document.querySelector(".rb-minimap circle"); // phones: the car laps the flat map instead
+if (!prefersReducedMotion) document.querySelector(".hero-sectors")?.classList.add("is-live");
 const clock = new THREE.Clock();
 
 function frame() {
@@ -231,7 +349,18 @@ function frame() {
 
   // Car: advance along the lap, braking into corners
   const profileIdx = Math.floor(lapT * CURV_SAMPLES) % CURV_SAMPLES;
+  const prevT = lapT;
   lapT = (lapT + dt * 0.035 * (0.45 + speedProfile[profileIdx])) % 1;
+  if (lapT < prevT && lapEl) lapEl.textContent = ++lap;
+  const sectorPos = lapT * 3;
+  const current = Math.floor(sectorPos);
+  sectorEls.forEach((el, i) =>
+    el.style.setProperty("--p", i < current ? 1 : i > current ? 0 : (sectorPos - current).toFixed(3)));
+  if (miniCar && !track.visible) {
+    const [mx, my] = outline[Math.floor(lapT * outline.length) % outline.length];
+    miniCar.setAttribute("cx", mx);
+    miniCar.setAttribute("cy", -my);
+  }
   const carPos = curve.getPointAt(lapT);
   car.position.copy(carPos);
   carGlow.position.copy(carPos);

@@ -294,6 +294,151 @@ main { position: relative; z-index: 1; }
   font-size: 0.95rem;
   letter-spacing: 2.5px;
 }
+/* live sectors: the bars fill as the car in the hero drives each sector */
+.sector { position: relative; }
+.hero-sectors.is-live .sector { border-bottom-color: rgba(255, 255, 255, 0.1); }
+.hero-sectors.is-live .sector::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: var(--red);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+}
+.hero-sectors.is-live .s2::after { background: var(--amber); }
+.hero-sectors.is-live .s3::after { background: var(--green); }
+
+/* keep the intro readable over the 3D scene */
+html:not([data-theme="street"]) .hero-sub { text-shadow: 0 0 18px var(--bg), 0 0 6px var(--bg); }
+
+/* ---------- race board: track map label + last race, via PyMotoGP ---------- */
+.race-board {
+  position: absolute;
+  z-index: 2;
+  right: max(28px, calc((100vw - var(--max-w)) / 2 + 28px));
+  bottom: 100px;
+  width: 340px;
+  font-family: var(--font-mono);
+  background: rgba(10, 10, 11, 0.74);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--red);
+  clip-path: var(--chamfer);
+  backdrop-filter: blur(6px);
+}
+.race-board[hidden] { display: none; }
+.hero.board-floating .scroll-hint { visibility: hidden; } /* the board owns that corner */
+.rb-track { position: relative; padding: 12px 96px 10px 16px; border-bottom: 1px solid var(--border); }
+.hero.map-3d .rb-track { padding-right: 16px; }
+.rb-minimap { position: absolute; top: 10px; right: 14px; width: 70px; height: 70px; overflow: visible; }
+.hero.map-3d .rb-minimap { display: none; }
+.rb-minimap polyline { fill: none; stroke-width: 0.075; stroke-linejoin: round; stroke-linecap: round; }
+.rb-minimap .s1 { stroke: var(--red); }
+.rb-minimap .s2 { stroke: var(--amber); }
+.rb-minimap .s3 { stroke: var(--green); }
+.rb-minimap circle { fill: var(--text); }
+.rb-kicker { display: flex; align-items: center; gap: 8px; font-size: 0.64rem; letter-spacing: 2px; color: var(--amber); }
+.rb-kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s ease infinite; }
+.rb-track-name {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.rb-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-size: 0.66rem;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+}
+.rb-lap b { color: var(--text); font-weight: 600; }
+.rb-results { padding: 10px 16px; }
+.rb-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.64rem;
+  letter-spacing: 2px;
+  color: var(--text-faint);
+}
+.rb-head span:last-child { color: var(--text-dim); text-transform: uppercase; }
+.rb-podium { list-style: none; display: grid; gap: 4px; }
+.rb-row {
+  display: grid;
+  grid-template-columns: 24px 24px minmax(0, 1fr) auto 66px;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+.rb-pos { color: var(--text-faint); }
+.rb-row:first-child .rb-pos { color: var(--amber); }
+.rb-num { color: var(--red-bright); font-weight: 600; }
+.rb-rider {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.rb-bike { font-size: 0.64rem; color: var(--text-faint); }
+.rb-time { text-align: right; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.rb-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+}
+.rb-stat { white-space: nowrap; }
+.rb-foot b { font-weight: 500; color: var(--text-dim); }
+.rb-source {
+  display: block;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.rb-source b { color: var(--amber); font-weight: 600; }
+.rb-source:hover { color: var(--text); }
+
+/* when the hero text needs the room (narrow screens, or main.js found a clash
+   on short ones) the board joins the flow under the buttons */
+.race-board.rb-flow {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  max-width: 420px;
+  margin: 34px max(28px, calc((100vw - var(--max-w)) / 2 + 28px)) 0;
+}
+@media (max-width: 1180px) {
+  .race-board {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    max-width: 420px;
+    margin: 34px 28px 0;
+  }
+}
+@media (max-width: 400px) { .race-board { margin-left: 18px; margin-right: 18px; } }
+
 .scroll-hint {
   margin-left: auto;
   font-family: var(--font-mono);
@@ -800,6 +945,9 @@ main { position: relative; z-index: 1; }
   font-size: 0.72rem;
   letter-spacing: 1.5px;
 }
+.footer-credit { font-size: 0.62rem; letter-spacing: 1px; text-transform: none; }
+.footer-credit a { color: var(--text-faint); text-decoration: underline; text-underline-offset: 2px; }
+.footer-credit a:hover { color: var(--text-dim); }
 .back-top { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
 .back-top:hover { color: var(--red-bright); }
 
@@ -1202,7 +1350,7 @@ html[data-theme="street"] .terminal-card {
   right: 4vw;
   top: 50%;
   transform: translateY(-56%) rotate(1.2deg);
-  width: 330px;
+  width: 350px;
   z-index: 2;
   border-radius: 14px;
   background: #1c1e1a;
@@ -1428,3 +1576,11 @@ html[data-theme="street"] .hint-text {
 }
 
 @media (prefers-reduced-motion: reduce) { .mode-hint { animation: none; } }
+
+/* steps aside once the visitor scrolls into the content */
+.mode-hint { transition: opacity 0.3s ease, visibility 0.3s; }
+.mode-hint.is-away { opacity: 0; visibility: hidden; }
+
+/* collapsed nav (≤900px): the toggle lives in the menu, so there's nothing to
+   point at — this has to come after the base .mode-hint rule to win */
+@media (max-width: 900px) { .mode-hint { display: none; } }

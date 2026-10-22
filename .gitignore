@@ -10,3 +10,7 @@
 
 # Script dependencies
 node_modules/
+
+# PyMotoGP cache (scripts/last_race.py)
+.motogp_cache/
+__pycache__/

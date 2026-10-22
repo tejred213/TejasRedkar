@@ -131,6 +131,111 @@ if (!reduceMotion && !coarsePointer) {
   });
 }
 
+// ===== Last race board: data/last-race.json, refreshed daily with PyMotoGP =====
+// Shared with scene.js (which draws the same track), so it's fetched once.
+window.lastRace = fetch("data/last-race.json")
+  .then((r) => (r.ok ? r.json() : null))
+  .catch(() => null);
+
+const el = (tag, className, text) => {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text != null) node.textContent = text;
+  return node;
+};
+const shortDate = (iso) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const surname = (name) => name.split(" ").slice(1).join(" ") || name;
+
+window.lastRace.then((data) => {
+  if (!data?.race?.podium?.length) return;
+  const { race, track } = data;
+
+  const board = document.getElementById("race-board");
+  if (board) {
+    const set = (key, text) => (board.querySelector(`[data-rb="${key}"]`).textContent = text);
+    const [from, to] = (track.dates || []).map(shortDate);
+    const when = !from ? "" : from.split(" ")[1] === to.split(" ")[1] ? `${from.split(" ")[0]}–${to}` : `${from} – ${to}`;
+    const daysTo = (iso) => Math.round((new Date(`${iso}T00:00:00`) - new Date().setHours(0, 0, 0, 0)) / 864e5);
+    let upcoming = "NEXT UP";
+    if (track.relation === "next" && track.dates) {
+      if (daysTo(track.dates[0]) <= 0 && daysTo(track.dates[1]) >= 0) upcoming = "RACE WEEKEND";
+      else if (daysTo(track.dates[0]) <= 6) upcoming = "THIS WEEKEND";
+    }
+    set("relation", { last: "THIS TRACK · LAST RACE", next: `${upcoming} · ${when}`, past: `${data.season} CALENDAR` }[track.relation] || "TRACK MAP");
+    set("track", track.name);
+    set("length", `${(track.length_m / 1000).toFixed(2)} KM`);
+    set("race", `R${race.round} · ${race.country}`);
+
+    // Flat track map for when the 3D one has no room (phones) — sectors coloured like the strip
+    const SVG = "http://www.w3.org/2000/svg";
+    const map = document.createElementNS(SVG, "svg");
+    map.setAttribute("class", "rb-minimap");
+    map.setAttribute("viewBox", "-1.15 -1.15 2.3 2.3");
+    map.setAttribute("aria-hidden", "true");
+    const pts = track.points;
+    [0, 1, 2].forEach((s) => {
+      const seg = pts.slice(Math.floor((s * pts.length) / 3), Math.floor(((s + 1) * pts.length) / 3) + 1);
+      if (s === 2) seg.push(pts[0]);
+      const line = document.createElementNS(SVG, "polyline");
+      line.setAttribute("class", `s${s + 1}`);
+      line.setAttribute("points", seg.map(([x, y]) => `${x},${-y}`).join(" "));
+      map.append(line);
+    });
+    const start = document.createElementNS(SVG, "circle");
+    start.setAttribute("cx", pts[0][0]);
+    start.setAttribute("cy", -pts[0][1]);
+    start.setAttribute("r", "0.08");
+    map.append(start);
+    board.querySelector(".rb-track").append(map);
+
+    const podium = board.querySelector('[data-rb="podium"]');
+    for (const p of race.podium) {
+      const row = el("li", "rb-row");
+      row.append(el("span", "rb-pos", `P${p.pos}`), el("span", "rb-num", p.number), el("span", "rb-rider", surname(p.rider)),
+        el("span", "rb-bike", p.bike || ""), el("span", "rb-time", p.time));
+      podium.append(row);
+    }
+    const foot = board.querySelector('[data-rb="foot"]');
+    const stat = (label, lap) => {
+      const node = el("span", "rb-stat", `${label} `);
+      node.append(el("b", null, `${surname(lap.rider)} ${lap.time}`));
+      return node;
+    };
+    if (race.pole) foot.append(stat("POLE", race.pole));
+    if (race.fastest_lap) foot.append(stat("FASTEST LAP", race.fastest_lap));
+    board.hidden = false;
+
+    // Float the board beside the hero text when it fits; otherwise it joins
+    // the flow under the buttons. scene.js then fits the track into what's left.
+    const placeBoard = () => {
+      board.classList.remove("rb-flow");
+      if (getComputedStyle(board).position === "absolute") {
+        const b = board.getBoundingClientRect();
+        const clash = [...document.querySelectorAll(".hero-headline .race-only, .hero-sub.race-only, .hero-actions .btn")]
+          .flatMap((node) => [...node.getClientRects()])
+          .some((r) => r.width && r.right > b.left - 24 && r.bottom > b.top - 24 && r.top < b.bottom + 24);
+        board.classList.toggle("rb-flow", clash);
+      }
+      board.closest(".hero")?.classList.toggle("board-floating", getComputedStyle(board).position === "absolute");
+      document.dispatchEvent(new Event("tr-hero-layout"));
+    };
+    placeBoard();
+    window.addEventListener("resize", placeBoard);
+    document.addEventListener("tr-theme-change", placeBoard);
+    document.fonts?.ready.then(placeBoard);
+    setTimeout(placeBoard, 900); // after the hero reveal settles
+  }
+
+  // Street mode terminal: the same result, as a real PyMotoGP call
+  const term = document.querySelector("[data-term-race]");
+  if (term) {
+    term.textContent = `>>> race = motogp.load(${data.season}, '${race.short}', 'race')\n>>> # podium: ${race.podium
+      .map((p) => surname(p.rider))
+      .join(", ")}`;
+  }
+});
+
 // ===== Project clips: loop only while on screen (poster only for reduced motion) =====
 const clips = document.querySelectorAll("video[data-autoplay]");
 if (clips.length && !reduceMotion) {
@@ -169,6 +274,12 @@ const panelSlide = document.getElementById("panel-slide");
 // Header hint: shown until the visitor switches sides once, then gone for good
 const modeHint = document.getElementById("mode-hint");
 if (modeHint && localStorage.getItem("tr-hint-done")) modeHint.remove();
+// ...and it steps aside once the visitor scrolls into the content
+if (modeHint?.isConnected) {
+  const hideHintOnScroll = () => modeHint.classList.toggle("is-away", window.scrollY > window.innerHeight * 0.35);
+  window.addEventListener("scroll", hideHintOnScroll, { passive: true });
+  hideHintOnScroll();
+}
 
 let switching = false;
 const switchTheme = () => {

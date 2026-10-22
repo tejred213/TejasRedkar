@@ -1,0 +1,43 @@
+name: Last race
+
+# Refreshes data/last-race.json — the hero's results board and track map — with
+# PyMotoGP, and commits it straight to main (data only, so no review PR).
+# Vercel deploys the commit. Runs every 6 hours so results land within hours
+# of a race; nothing is committed when the data hasn't changed.
+on:
+  schedule:
+    - cron: "15 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: last-race
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - run: pip install "pymotogp==0.3.0"
+
+      - name: Fetch the latest race
+        run: python scripts/last_race.py
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet data/last-race.json; then
+            echo "Race data unchanged." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update last race data" data/last-race.json
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "Race data updated." >> "$GITHUB_STEP_SUMMARY"
