@@ -38,12 +38,13 @@ python3 -m http.server 8080
 
 Two complete themes with a garage-shutter transition between them:
 
-- **Race mode** — the carbon/red/amber night identity with the 3D hero.
-- **Street mode** — a clean daylight aesthetic (warm paper, graph-paper grid,
-  same red accent), 3D scene disabled.
+- **Race mode** — the default: the carbon/red/amber identity with the 3D hero,
+  track map and live race board.
+- **Street mode** — an optional light theme (warm paper, graph-paper grid),
+  3D scene disabled.
 
-First-time visitors get Street mode between 07:00–19:00 local time and Race
-mode at night, but both sides are always one click away via the nav toggle.
+Every first-time visitor gets Race mode, whatever the time of day; Street mode
+is one click away via the nav toggle.
 A theme-matched hint (angular amber arrow + mono caps in Race mode, a
 hand-drawn curve + serif italic in Street mode) hangs under the toggle and
 points at it; it disappears forever after the visitor's first switch.
