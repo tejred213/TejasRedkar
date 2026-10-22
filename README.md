@@ -2,8 +2,9 @@
 
 Racing-broadcast design language meets machine learning. Carbon black, F1 red
 (#E10600) and amber telemetry — with a real-time Three.js "data circuit" in the
-hero: a glowing racing line lapped by a car light (it brakes for corners), an
-amber telemetry trail, and a neural-network node cloud firing signals overhead.
+hero: a real MotoGP circuit as a tilted track map, lapped by a car light (it
+brakes for corners) with an amber telemetry trail, under a neural-network node
+cloud firing signals overhead — plus a live results board fed by PyMotoGP.
 
 ## Structure
 
@@ -66,13 +67,13 @@ markers (S1–S5) light up as you pass each section and are clickable shortcuts.
 
 ## Things you may want to edit
 
-- **Experience dates** ([index.html](index.html), `#experience`) — roles came from
-  public LinkedIn snippets; periods are generic ("CURRENT STINT" / "EARLIER").
-  Replace with real date ranges.
+- **Experience** ([index.html](index.html), `#experience`) — dates, titles and
+  locations mirror LinkedIn; update both together.
 - **Stats** (`.stats`) — the public-repo and live-project counts are kept current
   by the project sync (below); the ML/DL count is point-in-time.
-- **Circuit shape** ([js/scene.js](js/scene.js), `trackPoints`) — control points of
-  the racing line; tweak to resemble your favourite circuit.
+- **Circuits** ([scripts/build_circuits.py](scripts/build_circuits.py)) — add a
+  venue to `CIRCUITS` (f1-circuits id) or `OSM_CIRCUITS` (OpenStreetMap way ids)
+  and re-run it to regenerate `data/circuits.json`.
 
 ## Auto-adding new projects
 
@@ -101,4 +102,31 @@ Run it locally (no files are written with `--dry-run`):
 ```bash
 cd scripts && npm install
 GITHUB_TOKEN=$(gh auth token) node sync-projects.mjs --dry-run
+```
+
+## Live race board & track map
+
+[.github/workflows/last-race.yml](.github/workflows/last-race.yml) runs every 6
+hours. [scripts/last_race.py](scripts/last_race.py) uses
+[PyMotoGP](https://pypi.org/project/pymotogp/) to find the latest MotoGP race
+with results and writes `data/last-race.json`: podium, pole and fastest lap,
+plus the circuit the hero draws. Changes are committed straight to `main`
+(data only), so Vercel publishes them without a review PR.
+
+- **Which track:** this week's race if one is underway or starts within 6 days,
+  otherwise the last race's circuit, otherwise the next one with an outline.
+- **Outlines** live in `data/circuits.json`: F1 layouts from
+  [f1-circuits](https://github.com/bacinger/f1-circuits) (MIT) and MotoGP-only
+  venues from OpenStreetMap (© OpenStreetMap contributors, ODbL — credited in
+  the footer). Venues without an outline fall back to the next one that has one.
+- **Layout:** on wide screens the 3D map fills the free space right of the hero
+  text, measured at runtime; on tablets it sits beside the board; on phones a
+  flat mini map inside the board takes over. The S1/S2/S3 strip fills as the
+  car drives each sector.
+
+Run it locally:
+
+```bash
+pip install pymotogp
+python scripts/last_race.py
 ```
