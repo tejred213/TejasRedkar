@@ -594,6 +594,73 @@ main { position: relative; z-index: 1; }
 }
 .more-projects p { color: var(--text-faint); max-width: 560px; font-size: 0.95rem; }
 
+/* ---------- project shots: screenshots, figures, code ---------- */
+.project-card::before { z-index: 2; }
+
+.project-shot {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+.project-shot img,
+.project-shot video {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* dimmed on the night grid, full colour on hover */
+  filter: saturate(0.8) brightness(0.8);
+  transition: filter 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.project-card:hover .project-shot img { filter: none; transform: scale(1.03); }
+
+/* matplotlib figures: invert the white paper into the carbon theme */
+.project-shot.is-figure video,
+.project-card:hover .project-shot.is-figure video { filter: invert(1) hue-rotate(180deg) brightness(1.8) saturate(1.5); }
+.project-card:hover .project-shot.is-figure video { transform: scale(1.02); }
+
+/* grid cards: the screenshot bleeds to the card edges */
+.project-card > .project-shot:first-child {
+  margin: -28px -28px 4px;
+  aspect-ratio: 16 / 10;
+  border-bottom: 1px solid var(--border);
+}
+.project-card > .project-shot:first-child img { height: 100%; object-fit: cover; object-position: top; }
+
+/* featured: a full row, text beside the shot */
+.project-card.featured {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  align-items: center;
+  gap: 40px;
+  padding: 32px;
+}
+.project-card.featured.flip { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.project-card.featured.flip .project-shot { order: -1; }
+.project-card.featured .project-shot { clip-path: var(--chamfer); }
+.project-body { position: relative; display: flex; flex-direction: column; gap: 14px; }
+.project-body .card-num { right: 0; bottom: -12px; }
+
+.project-status.research { color: var(--red-bright); }
+
+/* code panel (PyMotoGP) */
+.code-shot { background: #0d0d0f; border: 1px solid var(--border); }
+.code-shot .term-bar { background: #161618; }
+.code-shot .term-body {
+  margin: 0;
+  padding: 22px 24px 26px;
+  font-size: 0.8rem;
+  line-height: 1.95;
+  color: #dad8d0;
+  white-space: pre;
+  overflow-x: auto;
+}
+.t-dim { color: var(--text-faint); }
+.t-kw { color: var(--red-bright); }
+.t-str { color: var(--amber); }
+.t-num { color: #ff8a3d; }
+.t-com { color: var(--text-faint); font-style: italic; }
+
 /* ============================================================
    SKILLS / TOOLKIT
    ============================================================ */
@@ -759,6 +826,9 @@ main { position: relative; z-index: 1; }
 @media (max-width: 960px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
   .projects-grid { grid-template-columns: 1fr; }
+  .project-card.featured,
+  .project-card.featured.flip { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 28px; }
+  .project-card.featured .project-shot { order: -1; }
   .skills-grid { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; }
   .hero-ghost-num { font-size: 18rem; opacity: 0.7; }
@@ -824,6 +894,7 @@ main { position: relative; z-index: 1; }
   .hero-sectors { gap: 16px; flex-wrap: wrap; }
   .scroll-hint { display: none; }
   .hero-ghost-num { display: none; }
+  .code-shot .term-body { font-size: 0.66rem; padding: 18px 16px 20px; }
 
   /* street pipeline: let it wrap so the "scroll" cue is never cropped */
   .street-pipeline { flex-wrap: wrap; row-gap: 12px; }
@@ -1221,6 +1292,22 @@ html[data-theme="street"] .card-num {
 }
 html[data-theme="street"] .project-card:hover .card-num { color: rgba(14, 138, 95, 0.12); }
 html[data-theme="street"] .project-status.wip { color: #9c7c10; }
+html[data-theme="street"] .project-shot img,
+html[data-theme="street"] .project-shot.is-figure video { filter: none; }
+html[data-theme="street"] .project-card.featured .project-shot {
+  clip-path: none;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(28, 29, 26, 0.08);
+}
+html[data-theme="street"] .code-shot { background: #1c1e1a; border-color: transparent; }
+html[data-theme="street"] .code-shot .term-bar { background: #262823; }
+html[data-theme="street"] .code-shot .term-body { color: #cfd3c8; }
+html[data-theme="street"] .t-dim,
+html[data-theme="street"] .t-com { color: #8b8e84; }
+html[data-theme="street"] .t-kw { color: #7fd1a5; }
+html[data-theme="street"] .t-str { color: #e6c07b; }
+html[data-theme="street"] .t-num { color: #f0a36b; }
 html[data-theme="street"] .project-tags li {
   border-radius: 999px;
   color: var(--red-bright);
